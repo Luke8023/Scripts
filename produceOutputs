@@ -1,0 +1,18 @@
+#!/bin/bash
+if [ $# -ne 2 ];then
+        echo "incorrect number of command line aguments" >&2
+        exit 1
+fi
+
+for filename in $(cat "$1"); do
+	if [ -r ${filename}.in ];then
+		if [ -r ${filename}.args ];then
+			"$2" $(cat "${filename}.args") < ${filename}.in > ${filename}.out
+		else
+    			"$2" < ${filename}.in > ${filename}.out
+		fi
+        else  
+                echo "missing or unreadable ${filename}.in files" >&2
+                exit 2  
+        fi
+done

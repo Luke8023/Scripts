@@ -1,0 +1,42 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]; then
+     echo "incorrect number of command line arguments" >&2
+     exit 1
+else
+  for word in $(cat "$1"); do
+       if [ -r ${word}.in ] && [ -r ${word}.out ]; then
+              if [ -r ${word}.args ]; then
+                   "$2" $(cat ${word}.args) < ${word}.in | cmp -s ${word}.out
+                   if [ $(echo $?) -ne 0 ]; then
+						echo "-------------------------------------------------------------"
+                       echo "Test failed: ${word}"
+                       echo "Input:"
+                       echo "$(cat ${word}.in)"
+                       echo "Expected:"
+                       echo "$(cat ${word}.out)"
+                       echo "Actual:"
+                       echo "$("$2" $(cat ${word}.args) < ${word}.in)"
+                   fi
+              else
+                   "$2" <  ${word}.in | cmp -s ${word}.out
+                   if [ $(echo $?) -ne 0 ]; then
+				   echo "-------------------------------------------------------------"
+                       echo "Test failed: ${word}"
+                       echo "Input:"
+                       echo "$(cat ${word}.in)"
+                       echo "Expected:"
+                       echo "$(cat ${word}.out)"
+                       echo "Actual:"
+                       echo "$("$2" < ${word}.in)"
+                   fi
+              fi
+	      valgrind --leak-check=full "$2" < ${word}.in > /dev/null
+       else
+            echo "missing or unreadable ${word}.in or ${word}.out files" >&2
+            exit 1
+       fi
+	   echo "-------------------------------------------------------------"
+   done
+   
+fi
